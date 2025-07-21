@@ -2,21 +2,24 @@
 
 namespace App\Controller;
 
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Attribute\Route;
-use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Request;
-use Doctrine\ORM\EntityManagerInterface;
-use App\Form\CrudType;
 use App\Entity\Crud;
+use App\Form\CrudType;
+use App\Repository\CrudRepository;
+use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class HomePageController extends AbstractController
 {
     #[Route('/home/page', name: 'app_home_page')]
-    public function homePage(): Response
+    public function homePage(CrudRepository $crudRepo): Response
     {
+        $datas = $crudRepo->findAll();
         return $this->render('home_page/homePage.html.twig', [
             'controller_name' => 'HomePageController',
+            'datas' => $datas,
         ]);
     }
 
@@ -31,6 +34,8 @@ final class HomePageController extends AbstractController
             $entityManager->persist($crud);
             $entityManager->flush();
 
+            $this->addFlash('notice', 'Soumission réussie');
+
             return $this->redirectToRoute('app_home_page');
         }
 
@@ -38,5 +43,43 @@ final class HomePageController extends AbstractController
             'controller_name' => 'HomePageController',
             'form' => $form->createView(),
         ]);
+    }
+
+    #[Route('/update/{id}', name: 'app_update')]
+    public function update(Request $request, EntityManagerInterface $entityManager, CrudRepository $crudRepo, $id): Response
+    {
+        $crud = $crudRepo->find($id);
+        $form = $this->createForm(CrudType::class, $crud);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+
+            $entityManager->persist($crud);
+            $entityManager->flush();
+
+            $this->addFlash('notice', 'Modification réussie');
+
+
+            return $this->redirectToRoute('app_home_page');
+
+        }
+
+        return $this->render('form/updateForm.html.twig', [
+            'controller_name' => 'HomePageController',
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/delete/{id}', name: 'app_delete')]
+    public function delete(Request $request, EntityManagerInterface $entityManager, CrudRepository $crudRepo, $id): Response
+    {
+        $crud = $crudRepo->find($id);
+    
+            $entityManager->remove($crud);
+            $entityManager->flush();
+
+            $this->addFlash('notice', 'Suppression réussie');
+
+            return $this->redirectToRoute('app_home_page');
+
     }
 }
