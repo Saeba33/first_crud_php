@@ -13,6 +13,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 final class HomePageController extends AbstractController
 {
+    // CRUD : Read
     #[Route('/home/page', name: 'app_home_page')]
     public function homePage(CrudRepository $crudRepo): Response
     {
@@ -23,6 +24,8 @@ final class HomePageController extends AbstractController
         ]);
     }
 
+
+    // CRUD : Create
     #[Route('/create', name: 'app_create_form')]
     public function create_form(Request $request, EntityManagerInterface $entityManager): Response
     {
@@ -30,12 +33,10 @@ final class HomePageController extends AbstractController
         $form = $this->createForm(CrudType::class, $crud);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-
             $entityManager->persist($crud);
             $entityManager->flush();
 
             $this->addFlash('notice', 'Soumission réussie');
-
             return $this->redirectToRoute('app_home_page');
         }
 
@@ -45,6 +46,8 @@ final class HomePageController extends AbstractController
         ]);
     }
 
+
+    // CRUD : Update
     #[Route('/update/{id}', name: 'app_update')]
     public function update(Request $request, EntityManagerInterface $entityManager, CrudRepository $crudRepo, $id): Response
     {
@@ -52,15 +55,11 @@ final class HomePageController extends AbstractController
         $form = $this->createForm(CrudType::class, $crud);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-
             $entityManager->persist($crud);
             $entityManager->flush();
 
             $this->addFlash('notice', 'Modification réussie');
-
-
             return $this->redirectToRoute('app_home_page');
-
         }
 
         return $this->render('form/updateForm.html.twig', [
@@ -69,17 +68,16 @@ final class HomePageController extends AbstractController
         ]);
     }
 
+
+    // CRUD : Delete
     #[Route('/delete/{id}', name: 'app_delete')]
-    public function delete(Request $request, EntityManagerInterface $entityManager, CrudRepository $crudRepo, $id): Response
+    public function delete(EntityManagerInterface $entityManager, CrudRepository $crudRepo, $id): Response
     {
         $crud = $crudRepo->find($id);
-    
-            $entityManager->remove($crud);
-            $entityManager->flush();
+        $entityManager->remove($crud);
+        $entityManager->flush();
 
-            $this->addFlash('notice', 'Suppression réussie');
-
-            return $this->redirectToRoute('app_home_page');
-
+        $this->addFlash('notice', 'Suppression réussie');
+        return $this->redirectToRoute('app_home_page');
     }
 }

@@ -15,7 +15,6 @@ class CrudType extends AbstractType
             ->add('title')
             ->add('content');
     }
-
     public function configureOptions(OptionsResolver $resolver): void
     {
         $resolver->setDefaults([
